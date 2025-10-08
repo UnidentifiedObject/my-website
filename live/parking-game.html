@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Parking Game</title>
+  <style>
+    body {
+      background: #1e1e1e;
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: "Segoe UI", sans-serif;
+    }
+    canvas {
+      border: 4px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      background: #2f2f2f;
+    }
+    #ui {
+    position: absolute;
+    top: 45px; 
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    }
+
+    #score {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    #message {
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div id="score">Score: 0</div>
+    <div id="message"></div>
+  </div>
+
+  <canvas id="game" width="800" height="600"></canvas>
+
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const message = document.getElementById("message");
+  const scoreEl = document.getElementById("score");
+
+  const car = {
+    x: 400,
+    y: 500,
+    width: 40,
+    height: 80,
+    angle: 0,
+    speed: 0,
+    maxSpeed: 4,
+    accel: 0.2,
+    friction: 0.05,
+    turnSpeed: 3,
+  };
+
+  let obstacles = [];
+  let parkingSpot = randomSpot();
+  let gameState = "play"; // play, crashed, parked
+  let score = 0;
+
+  function randomSpot() {
+    let attempts = 0;
+    let spot;
+    do {
+      const x = 100 + Math.random() * 600;
+      const y = 100 + Math.random() * 400;
+      spot = { x, y, w: 60, h: 100 };
+      attempts++;
+      if (attempts > 100) break;
+    } while (
+      rectsOverlap(spot, { x: 400 - 60, y: 500 - 80, w: 120, h: 160 }) ||
+      obstacles.some(o => rectsOverlap(spot, o))
+    );
+    return spot;
+  }
+
+  function generateObstacles(count = 5) {
+    const newObstacles = [];
+    let attempts = 0;
+
+    while (newObstacles.length < count && attempts < 200) {
+      attempts++;
+      const w = 40 + Math.random() * 40;
+      const h = 80 + Math.random() * 40;
+      const x = 50 + Math.random() * (canvas.width - w - 100);
+      const y = 50 + Math.random() * (canvas.height - h - 150);
+
+      const newCar = { x, y, w, h, color: randomCarColor() };
+
+      if (
+        !rectsOverlap(newCar, { x: 400 - 60, y: 500 - 80, w: 120, h: 160 }) &&
+        !rectsOverlap(newCar, parkingSpot) &&
+        !newObstacles.some(o => rectsOverlap(o, newCar))
+      ) {
+        newObstacles.push(newCar);
+      }
+    }
+    return newObstacles;
+  }
+
+  function randomCarColor() {
+    const colors = ["#90caf9", "#f48fb1", "#a5d6a7", "#ffcc80", "#ce93d8", "#80cbc4"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  const keys = {};
+  document.addEventListener("keydown", e => keys[e.key] = true);
+  document.addEventListener("keyup", e => keys[e.key] = false);
+
+  function update() {
+    if (gameState !== "play") return;
+
+    // movement
+    if (keys["ArrowUp"]) car.speed = Math.min(car.speed + car.accel, car.maxSpeed);
+    if (keys["ArrowDown"]) car.speed = Math.max(car.speed - car.accel, -car.maxSpeed / 2);
+    if (!keys["ArrowUp"] && !keys["ArrowDown"]) {
+      if (car.speed > 0) car.speed -= car.friction;
+      if (car.speed < 0) car.speed += car.friction;
+      if (Math.abs(car.speed) < 0.1) car.speed = 0;
+    }
+
+    if (car.speed !== 0) {
+      if (keys["ArrowLeft"]) car.angle -= car.turnSpeed * (car.speed / car.maxSpeed);
+      if (keys["ArrowRight"]) car.angle += car.turnSpeed * (car.speed / car.maxSpeed);
+    }
+
+    car.x += Math.sin(car.angle * Math.PI / 180) * car.speed;
+    car.y -= Math.cos(car.angle * Math.PI / 180) * car.speed;
+
+    // boundaries
+    if (car.x < 0 || car.x > canvas.width || car.y < 0 || car.y > canvas.height) {
+      crash();
+    }
+
+    // obstacle collisions (precise polygon check)
+    for (const o of obstacles) {
+      if (polyCollision(carPoly(car), rectPoly(o))) crash();
+    }
+
+    // strict parking check
+    if (fullyInside(car, parkingSpot) && Math.abs(car.speed) < 0.3) {
+      park();
+    }
+  }
+
+  // --- Geometry helpers ---
+  function carPoly(c) {
+    const w = c.width, h = c.height;
+    const pts = [
+      { x: -w / 2, y: -h / 2 },
+      { x: w / 2, y: -h / 2 },
+      { x: w / 2, y: h / 2 },
+      { x: -w / 2, y: h / 2 }
+    ].map(p => rotatePoint(p, c.angle));
+    return pts.map(p => ({ x: p.x + c.x, y: p.y + c.y }));
+  }
+
+  function rectPoly(r) {
+    return [
+      { x: r.x, y: r.y },
+      { x: r.x + r.w, y: r.y },
+      { x: r.x + r.w, y: r.y + r.h },
+      { x: r.x, y: r.y + r.h }
+    ];
+  }
+
+  function rotatePoint(p, angleDeg) {
+    const rad = angleDeg * Math.PI / 180;
+    return {
+      x: p.x * Math.cos(rad) - p.y * Math.sin(rad),
+      y: p.x * Math.sin(rad) + p.y * Math.cos(rad)
+    };
+  }
+
+  function polyCollision(poly1, poly2) {
+    const polys = [poly1, poly2];
+    for (let i = 0; i < polys.length; i++) {
+      const poly = polys[i];
+      for (let j = 0; j < poly.length; j++) {
+        const k = (j + 1) % poly.length;
+        const edge = { x: poly[k].x - poly[j].x, y: poly[k].y - poly[j].y };
+        const axis = { x: -edge.y, y: edge.x };
+
+        let [minA, maxA] = projectPolygon(axis, poly1);
+        let [minB, maxB] = projectPolygon(axis, poly2);
+        if (maxA < minB || maxB < minA) return false;
+      }
+    }
+    return true;
+  }
+
+  function projectPolygon(axis, poly) {
+    const dots = poly.map(p => (p.x * axis.x + p.y * axis.y) / (Math.hypot(axis.x, axis.y)));
+    return [Math.min(...dots), Math.max(...dots)];
+  }
+
+  function fullyInside(car, spot) {
+    const poly = carPoly(car);
+    return poly.every(p => (
+      p.x > spot.x &&
+      p.x < spot.x + spot.w &&
+      p.y > spot.y &&
+      p.y < spot.y + spot.h
+    ));
+  }
+
+  // --- Rendering ---
+  function drawBackground() {
+    ctx.fillStyle = "#2f2f2f";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#555";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+  }
+
+  function drawCar() {
+    ctx.save();
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle * Math.PI / 180);
+
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(-car.width / 2 + 3, -car.height / 2 + 3, car.width, car.height);
+
+    // Car body
+    ctx.fillStyle = "#fdd835";
+    ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
+
+    // Front windshield
+    ctx.fillStyle = "#2196f3";
+    ctx.fillRect(-car.width / 2 + 5, -car.height / 2 + 3, car.width - 10, 15);
+
+    // Rear lights
+    ctx.fillStyle = "#e53935";
+    ctx.fillRect(-car.width / 2 + 3, car.height / 2 - 8, 8, 5);
+    ctx.fillRect(car.width / 2 - 11, car.height / 2 - 8, 8, 5);
+
+    ctx.restore();
+  }
+
+  function drawObstacleCar(o) {
+    ctx.save();
+    ctx.fillStyle = o.color;
+    ctx.fillRect(o.x, o.y, o.w, o.h);
+
+    ctx.fillStyle = "#2196f3";
+    ctx.fillRect(o.x + 5, o.y + 3, o.w - 10, 15);
+
+    ctx.fillStyle = "#e53935";
+    ctx.fillRect(o.x + 3, o.y + o.h - 8, 8, 5);
+    ctx.fillRect(o.x + o.w - 11, o.y + o.h - 8, 8, 5);
+
+    ctx.restore();
+  }
+
+  function drawObstacles() {
+    for (const o of obstacles) drawObstacleCar(o);
+  }
+
+  function drawParkingSpot() {
+    ctx.save();
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(parkingSpot.x, parkingSpot.y, parkingSpot.w, parkingSpot.h);
+    ctx.restore();
+  }
+
+  function draw() {
+    drawBackground();
+    drawObstacles();
+    drawParkingSpot();
+    drawCar();
+  }
+
+  // --- Game states ---
+  function crash() {
+  gameState = "crashed";
+  score = 0; // reset score on crash
+  scoreEl.textContent = `Score: ${score}`; // update UI
+  message.textContent = "💥 You Crashed! Restarting...";
+  setTimeout(resetGame, 1500);
+  }
+
+
+  function park() {
+    gameState = "parked";
+    score++;
+    scoreEl.textContent = `Score: ${score}`;
+    message.textContent = "✅ Perfect Park! New spot incoming...";
+    setTimeout(() => {
+      parkingSpot = randomSpot();
+      obstacles = generateObstacles();
+      resetCar();
+      message.textContent = "";
+      gameState = "play";
+    }, 1500);
+  }
+
+  function resetGame() {
+    resetCar();
+    parkingSpot = randomSpot();
+    obstacles = generateObstacles();
+    message.textContent = "";
+    gameState = "play";
+  }
+
+  function resetCar() {
+    car.x = 400;
+    car.y = 500;
+    car.angle = 0;
+    car.speed = 0;
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function rectsOverlap(a, b) {
+    return !(a.x + a.w < b.x || a.x > b.x + b.w || a.y + a.h < b.y || a.y > b.y + b.h);
+  }
+
+  // initial generation
+  obstacles = generateObstacles();
+
+  gameLoop();
+</script>
+
+</body>
+</html>
