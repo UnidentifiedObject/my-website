@@ -164,33 +164,43 @@ function sanitizeInputForDisplay(s) {
   return s.replace(/[\x00-\x1F\x7F]/g, '');
 }
 
+// Sanitize input
+function sanitizeInputForDisplay(s) {
+  return s.replace(/[\x00-\x1F\x7F]/g, '');
+}
+
 /**
  * Creates a new output line and inserts it above the input line.
  * CRITICAL FIX: Handles HTML vs. Text Node output for safety and styling.
  * @param {string} text 
  */
 function addLine(text) {
-  // Ensure text is converted to string and only the first 2000 chars are processed
-  const safe = String(text).slice(0, 2000); 
-  
-  // Split by newline to maintain formatting, if any
-  safe.split('\n').forEach(lineText => {
-    const outputLine = document.createElement('div');
-    outputLine.className = 'line';
+    // Ensure text is converted to string and only the first 2000 chars are processed
+    const safe = String(text).slice(0, 2000); 
     
-    // Check if the text explicitly contains an error tag from the execution logic
-    if (lineText.includes('<span class="error-message">') || lineText.includes('<div') || lineText.includes('<pre')) {
-        // Use innerHTML for styled messages and errors (safe if input is controlled)
-        outputLine.innerHTML = lineText;
-    } else {
-        // Use text node creation for all other content (prevents XSS from user input)
-        outputLine.appendChild(document.createTextNode(lineText));
-    }
+    // Split by newline to maintain formatting, if any
+    safe.split('\n').forEach(lineText => {
+        const outputLine = document.createElement('div');
+        outputLine.className = 'line';
+        
+        
+        if (
+            lineText.includes('<span class="error-message">') || 
+            lineText.includes('<span class="success-message">') || // <--- THIS IS THE NEW LINE
+            lineText.includes('<div') || 
+            lineText.includes('<pre')
+        ) {
+            // Use innerHTML for styled messages and errors
+            outputLine.innerHTML = lineText;
+        } else {
+            // Use text node creation for all other content (prevents XSS from user input)
+            outputLine.appendChild(document.createTextNode(lineText));
+        }
 
-    terminalLines.insertBefore(outputLine, inputLine);
-  });
-  terminal.scrollTop = terminal.scrollHeight;
-  terminalLines.scrollTop = terminalLines.scrollHeight;
+        terminalLines.insertBefore(outputLine, inputLine);
+    });
+    terminal.scrollTop = terminal.scrollHeight;
+    terminalLines.scrollTop = terminalLines.scrollHeight;
 }
 
 // Update input line text
@@ -665,6 +675,18 @@ document.addEventListener('keydown', (e) => {
             addLine(result);
             handled = true;
     }
+        else if (lowerInput === 'sad') {
+            const messages = [
+                '<span class="success-message">Remember: You are capable, strong, and valued.</span>',
+                '<span class="success-message">Sending a digital hug (\\_/) from the terminal.</span>',
+                '<span class="success-message">The system loves you. Keep going.</span>',
+                '<span class="success-message">STATUS: All systems GO! for happiness.</span>',
+                '<span class="success-message">You are the most interesting and most special person in universe.</span>'
+            ];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            addLine(randomMessage);
+            handled = true;
+        }
 
     // SCRIPT COMMANDS
     else if (lowerInput === 'script') {
@@ -730,3 +752,4 @@ document.addEventListener('keydown', (e) => {
       updateInput();
   }
 });
+
