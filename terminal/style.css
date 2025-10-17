@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  background-color: black;
+  color: #00ff00;
+  font-family: monospace;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#terminal {
+  width: 80%;
+  max-width: 800px;
+  height: 500px;
+  background-color: #000;
+  border: 3px solid #00ff00;
+  padding: 10px;
+  overflow-y: auto;
+  box-shadow: 0 0 20px #00ff00;
+}
+
+.error-message {
+    color: #ff0000; /* Bright Red for Errors */
+    font-weight: bold;
+}
+
+.line {
+  white-space: pre;
+  word-break: break-all;
+}
+
+.header {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+#inputLine {
+  display: inline;
+}
+
+#cursor {
+  display: inline;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
