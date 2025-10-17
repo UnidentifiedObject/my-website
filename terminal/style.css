@@ -47,3 +47,8 @@ body {
 @keyframes blink {
   50% { opacity: 0; }
 }
+
+.success-message {
+            color: #ffc107; /* Amber/Yellow for Wholesome/Success */
+            font-weight: bold;
+        }
