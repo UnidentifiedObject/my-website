@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleepable — Contact Compliance</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👁️</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="language.js" defer></script>
+</head>
+
+<body>
+
+    <div class="recording-indicator">
+        <span class="recording-dot"></span>
+        <span class="en">REC</span>
+        <span class="tr">KAYIT</span>
+    </div>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <span class="logo">SLEEPABLE™</span>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html">
+                            <span class="en">Home</span><span class="tr">Anasayfa</span>
+                        </a></li>
+                    <li><a href="moneymoneymoney.html">
+                            <span class="en">Subscribe</span><span class="tr">Abone Ol</span>
+                        </a></li>
+                    <li><a href="contact.html" class="nav-active">
+                            <span class="en">Contact Compliance</span><span class="tr">İletişim</span>
+                        </a></li>
+                    <li>
+                        <select id="lang-select" class="lang-switcher">
+                            <option value="en">EN</option>
+                            <option value="tr">TR</option>
+                        </select>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+
+        <section class="pricing-hero" style="max-width: 650px;">
+            <h1 class="glitch">
+                <span class="en">File A Grievance</span><span class="tr">Şikayet Oluştur</span>
+            </h1>
+            <p class="pricing-subtitle">
+                <span class="en">Your feedback is automatically printed directly into our state-of-the-art incinerator.
+                    Please fill out the form below so we can legally say we listened.</span>
+                <span class="tr">Geri bildiriminiz otomatik olarak son teknoloji çöp yakma fırınımıza yazdırılır. Yasal
+                    olarak dinlediğimizi iddia edebilmemiz için lütfen aşağıdaki formu doldurun.</span>
+            </p>
+            <p class="hero-disclaimer" style="margin-top: 1rem;">
+                <span class="en">WARNING: Current estimated response time is 4 to 6 generational cycles.</span>
+                <span class="tr">UYARI: Mevcut tahmini yanıt süresi 4 ila 6 nesil döngüsüdür.</span>
+            </p>
+        </section>
+
+        <section class="signup-section">
+            <form class="signup-form" action="">
+
+                <div class="form-group">
+                    <label for="citizen-id">
+                        <span class="en">Citizen ID / Soul Identifier</span><span class="tr">Vatandaşlık No / Ruh
+                            Tanımlayıcı</span>
+                    </label>
+                    <input type="text" id="citizen-id" name="citizen-id" placeholder="16-digit alphanumeric code"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="complaint-type">
+                        <span class="en">Nature of Discontent</span><span class="tr">Hoşnutsuzluğun Sebebi</span>
+                    </label>
+                    <select id="complaint-type" name="complaint-type" required>
+                        <option value="" disabled selected data-tr="Yasal olarak bağlayıcı şikayetinizi seçin...">Select
+                            your legally binding complaint...</option>
+                        <option value="ads" data-tr="Rüyalarımdaki reklamlar çok yüksek sesli">The ads in my dreams are
+                            too loud</option>
+                        <option value="mascot" data-tr="Kurumsal maskotunuz kabuslarımı işgal ediyor">Your corporate
+                            mascot is haunting my nightmares</option>
+                        <option value="billing" data-tr="Bana yanlışlıkla $50.000 fatura edildi (İade edilemez)">I was
+                            accidentally billed $50,000 (Non-refundable)</option>
+                        <option value="existential" data-tr="Genel varoluşsal kaygı (Desteklenmeyen davranış)">General
+                            existential dread (Unsupported behavior)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">
+                        <span class="en">Detailed Message (Max 12 characters)</span><span class="tr">Detaylı Mesaj (En
+                            fazla 12 karakter)</span>
+                    </label>
+                    <textarea id="message" name="message" rows="2" placeholder="..." required></textarea>
+                </div>
+
+                <button type="submit" class="submit-button">
+                    <span class="en">Submit to The Void</span><span class="tr">Boşluğa Gönder</span>
+                </button>
+
+            </form>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-social">
+            <a href="https://github.com/UnidentifiedObject" target="_blank">
+                <span class="en">GitHub ↗</span><span class="tr">GitHub ↗</span>
+            </a>
+        </div>
+        <p>
+            <span class="en">All rights reserved &copy; 2026 Sleepable Inc. — A Subsidiary of Everything Corp.</span>
+            <span class="tr">Tüm hakları saklıdır &copy; 2026 Sleepable Inc. — Her Şey Corp. Bir İştiraki.</span>
+        </p>
+        <p class="footer-fine-print">
+            <span class="en">By existing, you agree to our Terms of Service, Privacy Policy, and the complete works of
+                Kafka.</span>
+            <span class="tr">Var olarak, Hizmet Şartlarımızı, Gizlilik Politikamızı ve Kafka'nın tüm eserlerini kabul
+                etmiş olursunuz.</span>
+        </p>
+    </footer>
+
+</body>
+
+</html>
